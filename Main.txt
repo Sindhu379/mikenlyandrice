@@ -1,0 +1,28 @@
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val binding: ActivityMainBinding =
+            DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding.lifecycleOwner = this
+
+        binding.submit.setOnClickListener {
+            val user: String = binding.user.text.toString()
+            val context = this
+
+            doAsync {
+                val authToken = signIn(user)
+                val streamToken = getStreamToken(authToken)
+                val virgilToken = getVirgilToken(authToken)
+                initVirgil(it.context, virgilToken)
+
+                uiThread { context ->
+                    initStream(user, streamToken)
+                    val intent = UsersActivity.newIntent(context, user, authToken, virgilToken)
+                    startActivity(intent)
+                }
+            }
+        }
+    }
+}
+
