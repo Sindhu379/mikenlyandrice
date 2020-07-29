@@ -1,0 +1,28 @@
+un signIn(user: String): String {
+    return post("/v1/authenticate", mapOf("user" to user))
+        .getString("authToken")
+}
+
+fun getVirgilToken(authToken: String): String {
+    return post("/v1/virgil-credentials", mapOf(), authToken)
+        .getString("token")
+}
+
+fun getStreamToken(authToken: String): String {
+    return post("/v1/stream-credentials", mapOf(), authToken)
+        .getString("token")
+}
+
+private fun post(path: String, body: Map<String, Any>, authToken: String? = null): JSONObject {
+    val request = Request.Builder()
+        .url("${apiRoot}${path}")
+        .post(JSONObject(body).toString().toRequestBody(JSON))
+
+    if (authToken != null) {
+        request.addHeader("Authorization", "Bearer $authToken")
+    }
+
+    http.newCall(request.build()).execute().use {
+        return JSONObject(it.body!!.string())
+    }
+}
